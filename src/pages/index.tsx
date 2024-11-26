@@ -19,6 +19,8 @@ export default function HomePage(): JSX.Element {
   const [sortState, setSortState] = useState<Record<number, number>>({}); // 열별 정렬 상태 (-1: 내림차순, 1: 오름차순, 0: 초기 상태)
   const [sortPriority, setSortPriority] = useState<number[]>([]); // 정렬 우선순위 (열 인덱스 배열)
 
+  const [numberFrequency, setNumberFrequency] = useState<{ [key: number]: number }>({});
+
 
 
   // 파일 업로드 핸들러
@@ -199,58 +201,173 @@ export default function HomePage(): JSX.Element {
     }, [spreadsheetRef, setColumnWidths]);
   };
 
-
-
-
   // 열 길이 자동 업데이트
   useDynamicColumnWidths(spreadsheetRef, setColumnWidths);
+
+
+  // 서버에서 데이터 가져오기
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch("http://localhost:3000/crawling3");
+        const result = await response.json();
+        console.log(`서버와 연결`);
+        // 가져온 데이터를 Spreadsheet에 맞는 형식으로 변환
+        const formattedData = result.map((row: { [s: string]: unknown; } | ArrayLike<unknown>) =>
+          Object.values(row).map((value) => ({ value }))
+        );
+
+        // 상태에 설정
+        setData(formattedData);
+        console.log(`data : ${data}`);
+
+        // 열 너비 초기화
+        if (formattedData.length > 0) {
+          const columnCount = formattedData[0].length;
+          setColumnWidths(new Array(columnCount).fill(100)); // 기본 열 너비
+          setSortState(new Array(columnCount).fill(0)); // 초기 정렬 상태
+        }
+      } catch (error) {
+        console.error("데이터 가져오기 오류:", error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  // 서버에서 데이터 가져오기
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch("http://localhost:3000/crawling3");
+        const result = await response.json();
+        console.log(`서버와 연결`);
+
+        // 숫자 등장 횟수 계산
+        const frequency: { [key: number]: number } = {};
+        result.forEach((item: any) => {
+          Object.values(item).forEach((number) => {
+            if (typeof number === "number") {
+              frequency[number] = (frequency[number] || 0) + 1;
+            }
+          });
+        });
+        setNumberFrequency(frequency);
+        console.log("Frequency:", frequency);
+
+      } catch (error) {
+        console.error("데이터 가져오기 오류:", error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+
+
+  const getBackgroundColor = (number: number): string => {
+    const frequency = numberFrequency[number] || 0;
+  
+    // 투명도 계산: 등장 횟수에 따라 투명도 설정 (1은 가장 옅음, 0은 완전 불투명)
+    const alpha = Math.min(1, frequency / 100); // 등장 횟수에 비례하여 0~1 사이의 값으로 설정
+    const red = 255;
+  
+    return `rgba(${red}, 0, 0, ${alpha})`; // 빨간색 배경과 투명도 조절
+  };
+  
+
 
   return (
 
     <>
-      <div style={{ padding: "20px" }}>
-        <h1>Excel Test</h1>
-        <input type="file" onChange={handleFileUpload} />
 
-        {/* Spreadsheet 컴포넌트 */}
-        <div ref={spreadsheetRef} style={{ position: "relative", marginBottom: "10px" }}>
-          <div style={{ display: "flex", zIndex: 1, background: "#fff", marginBottom: "10px", }} >
-
-            <button disabled
-              style={{
-                width: `${columnWidths[0] || 100}px`, // 첫 번째 빈 열의 너비
-                cursor: "not-allowed", height: "30px", backgroundColor: "#e0e0e0", textAlign: "center", border: "1px solid #ccc",
-              }}></button>
-            {data[0]?.map((_, columnIndex) => (
-              <button
-                key={columnIndex}
-                onClick={() => handleSortColumn(columnIndex)}
-                style={{
-                  width: `${columnWidths[columnIndex + 1] || 100}px`, // 열 너비 동기화
-                  cursor: "pointer",
-                  height: "30px",
-                  backgroundColor: getButtonBackgroundColor(sortState[columnIndex] || 0),
-                  textAlign: "center",
-                  border: "1px solid #ccc",
-                }}
-              >
-                {getColumnName(columnIndex)} {sortState[columnIndex] === 1 ? "▲" : sortState[columnIndex] === -1 ? "▼" : ""}
-              </button>
-            ))}
-
-
-
-          </div>
-
-          {/* 스프레드시트 */}
-          <Spreadsheet data={data} onChange={handleSpreadsheetChange} />
-        </div>
+      <div>
+        <span id="1" style={{ backgroundColor: getBackgroundColor(1) }}>1</span>
+        <span id="2" style={{ backgroundColor: getBackgroundColor(2) }}>2</span>
+        <span id="3" style={{ backgroundColor: getBackgroundColor(3) }}>3</span>
+        <span id="4" style={{ backgroundColor: getBackgroundColor(4) }}>4</span>
+        <span id="5" style={{ backgroundColor: getBackgroundColor(5) }}>5</span>
+        <span id="6" style={{ backgroundColor: getBackgroundColor(6) }}>6</span>
+        <span id="7" style={{ backgroundColor: getBackgroundColor(7) }}>7</span>
+        <span id="8" style={{ backgroundColor: getBackgroundColor(8) }}>8</span>
+        <span id="9" style={{ backgroundColor: getBackgroundColor(9) }}>9</span>
+        <span id="10" style={{ backgroundColor: getBackgroundColor(10) }}>10</span>
+        <span id="11" style={{ backgroundColor: getBackgroundColor(11) }}>11</span>
+        <span id="12" style={{ backgroundColor: getBackgroundColor(12) }}>12</span>
+        <span id="13" style={{ backgroundColor: getBackgroundColor(13) }}>13</span>
+        <span id="14" style={{ backgroundColor: getBackgroundColor(14) }}>14</span>
+        <span id="15" style={{ backgroundColor: getBackgroundColor(15) }}>15</span>
+        <span id="16" style={{ backgroundColor: getBackgroundColor(16) }}>16</span>
+        <span id="17" style={{ backgroundColor: getBackgroundColor(17) }}>17</span>
+        <span id="18" style={{ backgroundColor: getBackgroundColor(18) }}>18</span>
+        <span id="19" style={{ backgroundColor: getBackgroundColor(19) }}>19</span>
+        <span id="20" style={{ backgroundColor: getBackgroundColor(20) }}>20</span>
+        <span id="21" style={{ backgroundColor: getBackgroundColor(21) }}>21</span>
+        <span id="22" style={{ backgroundColor: getBackgroundColor(22) }}>22</span>
+        <span id="23" style={{ backgroundColor: getBackgroundColor(23) }}>23</span>
+        <span id="24" style={{ backgroundColor: getBackgroundColor(24) }}>24</span>
+        <span id="25" style={{ backgroundColor: getBackgroundColor(25) }}>25</span>
+        <span id="26" style={{ backgroundColor: getBackgroundColor(26) }}>26</span>
+        <span id="27" style={{ backgroundColor: getBackgroundColor(27) }}>27</span>
+        <span id="28" style={{ backgroundColor: getBackgroundColor(28) }}>28</span>
+        <span id="29" style={{ backgroundColor: getBackgroundColor(29) }}>29</span>
+        <span id="30" style={{ backgroundColor: getBackgroundColor(30) }}>30</span>
+        <span id="31" style={{ backgroundColor: getBackgroundColor(31) }}>31</span>
+        <span id="32" style={{ backgroundColor: getBackgroundColor(32) }}>32</span>
+        <span id="33" style={{ backgroundColor: getBackgroundColor(33) }}>33</span>
+        <span id="34" style={{ backgroundColor: getBackgroundColor(34) }}>34</span>
+        <span id="35" style={{ backgroundColor: getBackgroundColor(35) }}>35</span>
+        <span id="36" style={{ backgroundColor: getBackgroundColor(36) }}>36</span>
+        <span id="37" style={{ backgroundColor: getBackgroundColor(37) }}>37</span>
+        <span id="38" style={{ backgroundColor: getBackgroundColor(38) }}>38</span>
+        <span id="39" style={{ backgroundColor: getBackgroundColor(39) }}>39</span>
+        <span id="40" style={{ backgroundColor: getBackgroundColor(40) }}>40</span>
+        <span id="41" style={{ backgroundColor: getBackgroundColor(41) }}>41</span>
+        <span id="42" style={{ backgroundColor: getBackgroundColor(42) }}>42</span>
+        <span id="43" style={{ backgroundColor: getBackgroundColor(43) }}>43</span>
+        <span id="44" style={{ backgroundColor: getBackgroundColor(44) }}>44</span>
+        <span id="45" style={{ backgroundColor: getBackgroundColor(45) }}>45</span>
       </div>
+
     </>
   );
 }
 
+// <div style={{ padding: "20px" }}>
+// <h1>Excel Test</h1>
+// <input type="file" onChange={handleFileUpload} />
 
+// {/* Spreadsheet 컴포넌트 */}
+// <div ref={spreadsheetRef} style={{ position: "relative", marginBottom: "10px" }}>
+//   <div style={{ display: "flex", zIndex: 1, background: "#fff", marginBottom: "10px", }} >
+
+//     <button disabled
+//       style={{
+//         width: `${columnWidths[0] || 100}px`, // 첫 번째 빈 열의 너비
+//         cursor: "not-allowed", height: "30px", backgroundColor: "#e0e0e0", textAlign: "center", border: "1px solid #ccc",
+//       }}></button>
+//     {data[0]?.map((_, columnIndex) => (
+//       <button
+//         key={columnIndex}
+//         onClick={() => handleSortColumn(columnIndex)}
+//         style={{
+//           width: `${columnWidths[columnIndex + 1] || 100}px`, // 열 너비 동기화
+//           cursor: "pointer",
+//           height: "30px",
+//           backgroundColor: getButtonBackgroundColor(sortState[columnIndex] || 0),
+//           textAlign: "center",
+//           border: "1px solid #ccc",
+//         }}
+//       >
+//         {getColumnName(columnIndex)} {sortState[columnIndex] === 1 ? "▲" : sortState[columnIndex] === -1 ? "▼" : ""}
+//       </button>
+//     ))}
+//   </div>
+
+//   {/* 스프레드시트 */}
+//   <Spreadsheet data={data} onChange={handleSpreadsheetChange} />
+// </div>
+// </div>
 // import { useEffect } from 'react';
 
 // export default function HomePage() {
