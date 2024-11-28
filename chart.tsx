@@ -15,7 +15,7 @@ import {
 // Chart.js에서 필요한 컴포넌트 등록
 ChartJS.register(Title, Tooltip, Legend, LinearScale, PointElement, LineElement, CategoryScale);
 
-export default function Index(): JSX.Element {
+export default function HomePage(): JSX.Element {
   const [main1, setMain1] = useState<number[]>([]);
   const [main2, setMain2] = useState<number[]>([]);
   const [main3, setMain3] = useState<number[]>([]);
